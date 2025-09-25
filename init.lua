@@ -7,12 +7,12 @@ vim.opt.autoindent = true
 vim.opt.number = true
 vim.opt.clipboard = 'unnamedplus'
 vim.g.mapleader = " "
+vim.g.maplocalleader = '  '
 vim.opt.ruler = true
 vim.opt.cursorline = true
 vim.opt.expandtab = true
-vim.opt.scrolloff = 12
+vim.opt.scrolloff = 15
 -- vim.opt.termguicolors = true
--- vim.g.fzf_action = { ['enter'] = 'tab split' }
 vim.cmd('set relativenumber')
 
 -- for menu
@@ -23,6 +23,9 @@ vim.g.netrw_browse_split = 4
 vim.g.netrw_preview = 1
 vim.g.netrw_liststyle = 3
 --vim.cmd('set autochdir')
+--
+vim.opt.laststatus = 2 -- Or 3 for global statusline
+vim.opt.statusline = " %f %m %= %l:%c ♥ "
 
 local vim = vim
 local Plug = vim.fn['plug#']
@@ -36,32 +39,52 @@ Plug('hrsh7th/cmp-nvim-lsp')
 -- TS
 Plug('nvim-treesitter/nvim-treesitter', { ['do'] = function() vim.fn['TSUpdate']() end })
 
--- FZF
-Plug('junegunn/fzf.vim')
-Plug('junegunn/fzf', {
-    ['do'] = function()
-        vim.fn['fzf#install']()
-    end
-})
-
 -- Motion
+Plug('nvim-lua/plenary.nvim')
+Plug('nvim-telescope/telescope.nvim', {['tag'] = '0.1.8'})
+Plug('nvim-telescope/telescope-frecency.nvim', {['tag'] = '^0.9.0'})
+
 Plug('ggandor/leap.nvim')
 Plug('tpope/vim-surround')
-Plug('tpope/vim-fugitive')
+Plug('tpope/vim-fugitive', {['as'] = 'catpuccin'})
 
 -- Themes
-Plug('navarasu/onedark.nvim')
-Plug 'ellisonleao/gruvbox.nvim'
+Plug('ellisonleao/gruvbox.nvim')
+
+Plug('airblade/vim-gitgutter')
+
+-- Lean
+Plug('neovim/nvim-lspconfig')
+Plug('nvim-lua/plenary.nvim')
+Plug('Julian/lean.nvim')
 
 vim.call('plug#end')
 
-
 -- Configure plugins
+
+require('telescope').load_extension('frecency')
+require('telescope').setup({
+    defaults = {
+        path_display = {"smart"}
+    }
+})
+
+require('lean').setup({
+    mappings = true,
+    -- infoview = {
+    --   autoopen = true,
+    --   orientation = "horizontal",
+    --   height = 15,
+    --   horizontal_position = "bottom",
+    -- },
+})
+
 require('leap').set_default_mappings()
 require("gruvbox").setup({
   undercurl = false,
   overrides = {},
 })
+
 vim.cmd("colorscheme gruvbox")
 
 -- Completion setup
@@ -78,32 +101,22 @@ cmp.setup({
     },
 })
 
--- Env
-vim.env.FZF_DEFAULT_COMMAND = 'rg --files'
-
--- Complation
-vim.keymap.set('n', '<leader>b', ':!make<CR>', { noremap = true })
-
 -- Fuzzy
-vim.opt.rtp:append('/opt/local/share/fzf/vim')
-vim.keymap.set('n', '<leader>ff', ':FZF<CR>', { noremap = true })
-vim.keymap.set('n', '<leader>fg', ':RG<CR>', { noremap = true })
-vim.keymap.set('n', '<leader>fl', ':Lines<CR>', { noremap = true })
-vim.keymap.set('n', '<leader>fh', ':History<CR>', { noremap = true })
-vim.keymap.set('n', '<leader>fb', ':Buffers<CR>', { noremap = true })
-vim.keymap.set('n', '<leader>fw', ':Windows<CR>', { noremap = true })
+local builtin = require('telescope.builtin')
+vim.keymap.set('n', '<leader>ff', builtin.find_files, { noremap = true })
+vim.keymap.set('n', '<leader>fg', builtin.live_grep, { noremap = true })
+vim.keymap.set('n', '<leader>fb', builtin.buffers, { noremap = true })
+vim.keymap.set('n', '<leader>fH', builtin.help_tags, { noremap = true })
+vim.keymap.set('n', '<leader>fh', ':Telescope frecency<CR>', { noremap = true })
+vim.keymap.set('n', '<leader>fc', builtin.git_commits, { noremap = true })
+vim.keymap.set('n', '<leader>fs', builtin.git_status, { noremap = true })
 
 -- Git
-vim.keymap.set('n', '<leader>gc', ':Commits<CR>', { noremap = true })
 vim.keymap.set('n', '<leader>gb', ':Git blame<CR>', { noremap = true })
-vim.keymap.set('n', '<leader>gs', ':Git switch ', { noremap = true })
-vim.keymap.set('n', '<leader>gg', ':Git status<CR>', { noremap = true })
-
--- Tabs
-vim.keymap.set('n', '<A-h>', ':tabprevious<CR>', { noremap = true })
-vim.keymap.set('i', '<A-h>', ':tabprevious<CR>', { noremap = true })
-vim.keymap.set('n', '<A-l>', ':tabnext<CR>', { noremap = true })
-vim.keymap.set('i', '<A-l', ':tabnext<CR>', { noremap = true })
+vim.keymap.set('n', '<leader>gs', ':Git status', { noremap = true })
+vim.keymap.set('n', '<leader>gg', ':Git<CR>', { noremap = true })
+vim.keymap.set('n', ']g', ':GitGutterNextHunk', { noremap = true })
+vim.keymap.set('n', '[g', ':GitGutterPrevHunk', { noremap = true })
 
 -- LSP
 vim.keymap.set('n', '<c-alt>', function()
@@ -119,13 +132,6 @@ vim.api.nvim_create_autocmd("FileType", {
 
 -- LSP Setup with vim.lsp.config (modern Neovim 0.11+ approach)
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
-
-vim.lsp.config('gopls', {
-    cmd = { "gopls" },
-    root_markers = { "go.mod" },
-    filetypes = { "go" },
-    capabilities = capabilities,
-})
 
 vim.lsp.config('lua_ls', {
     cmd = { "lua-language-server" },
@@ -145,30 +151,13 @@ vim.lsp.config('clangd', {
     capabilities = capabilities,
 })
 
-vim.lsp.config('zls', {
-    cmd = { "zls" },
-    root_markers = { "zls.json", "build.zig", ".git" },
-    filetypes = { "zig", "zir" },
-    capabilities = capabilities,
-})
-
--- SourceKit-LSP with special configuration for Swift completion
-vim.lsp.config('sourcekit', {
-    cmd = { "sourcekit-lsp" },
-    filetypes = { "swift" },
-    root_markers = { "Package.swift", "buildServer.json", ".git" },
-    capabilities = vim.tbl_deep_extend('force', capabilities, {
-        workspace = {
-            didChangeWatchedFiles = {
-                dynamicRegistration = true,
-            },
-        },
-    }),
+vim.lsp.config('millet', {
+    cmd = { 'millet-ls' },
+    filetypes = { 'sml' },
+    root_markers = {'millet.toml'}
 })
 
 vim.lsp.enable('lua_ls')
--- vim.lsp.enable('gopls')
 vim.lsp.enable('ocaml')
 -- vim.lsp.enable('clangd')
--- vim.lsp.enable('zls')
-vim.lsp.enable('sourcekit')
+vim.lsp.enable('millet')
