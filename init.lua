@@ -50,6 +50,7 @@ Plug('tpope/vim-fugitive', {['as'] = 'catpuccin'})
 
 -- Themes
 Plug('ellisonleao/gruvbox.nvim')
+Plug('olimorris/onedarkpro.nvim')
 
 Plug('airblade/vim-gitgutter')
 
@@ -57,6 +58,9 @@ Plug('airblade/vim-gitgutter')
 Plug('neovim/nvim-lspconfig')
 Plug('nvim-lua/plenary.nvim')
 Plug('Julian/lean.nvim')
+
+Plug('whonore/Coqtail')
+Plug('tomtomjhj/vsrocq.nvim')
 
 vim.call('plug#end')
 
@@ -79,13 +83,10 @@ require('lean').setup({
     -- },
 })
 
-require('leap').set_default_mappings()
-require("gruvbox").setup({
-  undercurl = false,
-  overrides = {},
-})
-
-vim.cmd("colorscheme gruvbox")
+-- require('leap').set_default_mappings()
+--
+-- vim.cmd("colorscheme onedark_vivid")
+vim.cmd("colorscheme quiet")
 
 -- Completion setup
 local cmp = require('cmp')
@@ -130,32 +131,27 @@ vim.api.nvim_create_autocmd("FileType", {
     end
 })
 
--- LSP Setup with vim.lsp.config (modern Neovim 0.11+ approach)
-local capabilities = require('cmp_nvim_lsp').default_capabilities()
+-- Rocq
+vim.g.loaded_coqtail = 1
+vim.api.nvim_set_var('coqtail#supported', 0)
 
-vim.lsp.config('lua_ls', {
-    cmd = { "lua-language-server" },
-    filetypes = { "lua" },
-    capabilities = capabilities,
+require('vsrocq').setup({
+    vsrocq = {
+        completion = {
+            enable = false,
+        },
+    },
 })
 
-vim.lsp.config('ocaml', {
-    cmd = { "ocamllsp" },
-    filetypes = { "ocaml" },
-    capabilities = capabilities,
-})
+local bg = string.format('#%06x', vim.api.nvim_get_hl(0, {name = 'Normal'}).bg or 0)
+vim.cmd('highlight CoqtailChecked guibg=' .. bg)
+vim.cmd('highlight CoqtailSent guibg=' .. bg)
 
-vim.lsp.config('clangd', {
-    cmd = { "clangd" },
-    filetypes = { "c", "cpp" },
-    capabilities = capabilities,
-})
-
-vim.lsp.config('millet', {
-    cmd = { 'millet-ls' },
-    filetypes = { 'sml' },
-    root_markers = {'millet.toml'}
-})
+vim.keymap.set('n', '<leader>cl', ':VsRocq interpretToPoint<CR>', { noremap = true })
+vim.keymap.set('n', '<leader>cj', ':VsRocq stepForward<CR>', { noremap = true })
+vim.keymap.set('n', '<leader>ck', ':VsRocq stepBackward<CR>', { noremap = true })
+vim.keymap.set('n', '<leader>cm', ':VsRocq manual<CR>', { noremap = true })
+vim.keymap.set('n', '<leader>cc', ':VsRocq continuous<CR>', { noremap = true })
 
 vim.lsp.enable('lua_ls')
 vim.lsp.enable('ocaml')
