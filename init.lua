@@ -23,7 +23,7 @@ vim.g.netrw_browse_split = 4
 vim.g.netrw_preview = 1
 vim.g.netrw_liststyle = 3
 --vim.cmd('set autochdir')
---
+vim.cmd('dig TS 8866')
 vim.opt.laststatus = 2 -- Or 3 for global statusline
 vim.opt.statusline = " %f %m %= %l:%c ♥ "
 
@@ -41,8 +41,9 @@ Plug('nvim-treesitter/nvim-treesitter', { ['do'] = function() vim.fn['TSUpdate']
 
 -- Motion
 Plug('nvim-lua/plenary.nvim')
-Plug('nvim-telescope/telescope.nvim', {['tag'] = '0.1.8'})
-Plug('nvim-telescope/telescope-frecency.nvim', {['tag'] = '^0.9.0'})
+Plug('nvim-telescope/telescope.nvim')
+Plug('nvim-telescope/telescope-frecency.nvim')
+Plug('p00f/alabaster.nvim')
 
 Plug('ggandor/leap.nvim')
 Plug('tpope/vim-surround')
@@ -51,8 +52,10 @@ Plug('tpope/vim-fugitive', {['as'] = 'catpuccin'})
 -- Themes
 Plug('ellisonleao/gruvbox.nvim')
 Plug('olimorris/onedarkpro.nvim')
+Plug('ntk148v/komau.vim')
 
 Plug('airblade/vim-gitgutter')
+
 
 -- Lean
 Plug('neovim/nvim-lspconfig')
@@ -61,6 +64,8 @@ Plug('Julian/lean.nvim')
 
 Plug('whonore/Coqtail')
 Plug('tomtomjhj/vsrocq.nvim')
+
+-- Plug('syaiful6/koka.nvim')
 
 vim.call('plug#end')
 
@@ -72,7 +77,6 @@ require('telescope').setup({
         path_display = {"smart"}
     }
 })
-
 require('lean').setup({
     mappings = true,
     -- infoview = {
@@ -83,10 +87,9 @@ require('lean').setup({
     -- },
 })
 
--- require('leap').set_default_mappings()
---
--- vim.cmd("colorscheme onedark_vivid")
-vim.cmd("colorscheme quiet")
+-- vim.cmd("set background=light")
+vim.cmd("colorscheme retrobox")
+vim.keymap.set('n', '<leader>pc', ':Telescope colorscheme<CR>', { noremap = true })
 
 -- Completion setup
 local cmp = require('cmp')
@@ -116,8 +119,8 @@ vim.keymap.set('n', '<leader>fs', builtin.git_status, { noremap = true })
 vim.keymap.set('n', '<leader>gb', ':Git blame<CR>', { noremap = true })
 vim.keymap.set('n', '<leader>gs', ':Git status', { noremap = true })
 vim.keymap.set('n', '<leader>gg', ':Git<CR>', { noremap = true })
-vim.keymap.set('n', ']g', ':GitGutterNextHunk', { noremap = true })
-vim.keymap.set('n', '[g', ':GitGutterPrevHunk', { noremap = true })
+vim.keymap.set('n', ']g', ':GitGutterNextHunk<CR>', { noremap = true })
+vim.keymap.set('n', '[g', ':GitGutterPrevHunk<CR>', { noremap = true })
 
 -- LSP
 vim.keymap.set('n', '<c-alt>', function()
@@ -132,16 +135,16 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 -- Rocq
-vim.g.loaded_coqtail = 1
-vim.api.nvim_set_var('coqtail#supported', 0)
-
-require('vsrocq').setup({
-    vsrocq = {
-        completion = {
-            enable = false,
-        },
-    },
-})
+-- vim.g.loaded_coqtail = 1
+-- vim.api.nvim_set_var('coqtail#supported', 0)
+--
+-- require('vsrocq').setup({
+--     vsrocq = {
+--         completion = {
+--             enable = false,
+--         },
+--     },
+-- })
 
 local bg = string.format('#%06x', vim.api.nvim_get_hl(0, {name = 'Normal'}).bg or 0)
 vim.cmd('highlight CoqtailChecked guibg=' .. bg)
@@ -150,10 +153,32 @@ vim.cmd('highlight CoqtailSent guibg=' .. bg)
 vim.keymap.set('n', '<leader>cl', ':VsRocq interpretToPoint<CR>', { noremap = true })
 vim.keymap.set('n', '<leader>cj', ':VsRocq stepForward<CR>', { noremap = true })
 vim.keymap.set('n', '<leader>ck', ':VsRocq stepBackward<CR>', { noremap = true })
+vim.keymap.set('i', '<A-j>', '<Esc>:VsRocq stepForward<CR>a', { noremap = true })
+vim.keymap.set('i', '<A-k>', '<Esc>:VsRocq stepBackward<CR>a', { noremap = true })
 vim.keymap.set('n', '<leader>cm', ':VsRocq manual<CR>', { noremap = true })
 vim.keymap.set('n', '<leader>cc', ':VsRocq continuous<CR>', { noremap = true })
+vim.keymap.set('n', '<leader>cr', ':lua require("vsrocq").setup()<CR>', { noremap = true })
 
-vim.lsp.enable('lua_ls')
-vim.lsp.enable('ocaml')
--- vim.lsp.enable('clangd')
+-- Koka
+local parser_config = require('nvim-treesitter.parsers')
+vim.treesitter.language.register('koka', 'koka')
+
+parser_config.koka = {
+  install_info = {
+    url = "https://github.com/koka-lang/tree-sitter-koka",
+    files = { "src/parser.c", "src/scanner.c" },
+    branch = "main",
+  },
+  filetype = "koka",
+}
+vim.filetype.add({
+  extension = {
+    kk = "koka",
+  },
+})
+
+-- vim.lsp.enable('lua_ls')
+vim.lsp.enable('ocamllsp')
+vim.lsp.enable('koka')
+vim.lsp.enable('clangd')
 vim.lsp.enable('millet')
