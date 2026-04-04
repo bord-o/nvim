@@ -1,3 +1,6 @@
+-- Requires: neovim 0.12+, ripgrep (for telescope live_grep), a nerd font (optional)
+-- First launch will auto-install plugins
+
 -- Basic config
 vim.opt.tabstop = 4
 vim.opt.shiftwidth = 4
@@ -12,86 +15,60 @@ vim.opt.ruler = true
 vim.opt.cursorline = true
 vim.opt.expandtab = true
 vim.opt.scrolloff = 15
--- vim.opt.termguicolors = true
-vim.cmd('set relativenumber')
-
--- for menu
-vim.g.netrw_menu = 0
-vim.g.netrw_liststyle = 3
-vim.g.netrw_winsize = 75
-vim.g.netrw_browse_split = 4
-vim.g.netrw_preview = 1
-vim.g.netrw_liststyle = 3
---vim.cmd('set autochdir')
-vim.cmd('dig TS 8866')
+vim.opt.relativenumber = true
+vim.cmd('dig TS 8866') -- digraph support for ⊢
 vim.opt.laststatus = 2 -- Or 3 for global statusline
-vim.opt.statusline = " %f %m %= %l:%c ♥ "
+vim.opt.statusline = " %f %m %= %l:%c of %L ♥ "
 
-local vim = vim
-local Plug = vim.fn['plug#']
+-- Plugins
+local function gh(repo) return 'https://github.com/' .. repo end
+local function cb(repo) return 'https://codeberg.org/' .. repo end
 
-vim.call('plug#begin')
+vim.pack.add({
+    gh('nvim-lua/plenary.nvim'),
+    gh('hrsh7th/nvim-cmp'),
+    gh('hrsh7th/cmp-nvim-lsp'),
+    gh('nvim-treesitter/nvim-treesitter'),
+    gh('nvim-telescope/telescope.nvim'),
+    gh('nvim-telescope/telescope-frecency.nvim'),
+    gh('p00f/alabaster.nvim'),
+    cb('andyg/leap.nvim'),
+    gh('tpope/vim-surround'),
+    gh('tpope/vim-fugitive'),
+    gh('ellisonleao/gruvbox.nvim'),
+    gh('olimorris/onedarkpro.nvim'),
+    gh('ntk148v/komau.vim'),
+    gh('airblade/vim-gitgutter'),
+    gh('neovim/nvim-lspconfig'),
+    gh('Julian/lean.nvim'),
+    gh('whonore/Coqtail'),
+    gh('tomtomjhj/vsrocq.nvim'),
+    gh('stevearc/oil.nvim')
+})
+vim.api.nvim_create_user_command("PackUpdate", function()
+    require("vim.pack").update()
+end, { desc = "Update all plugins using vim.pack" })
 
--- Completion
-Plug('hrsh7th/nvim-cmp')
-Plug('hrsh7th/cmp-nvim-lsp')
-
--- TS
-Plug('nvim-treesitter/nvim-treesitter', { ['do'] = function() vim.fn['TSUpdate']() end })
-
--- Motion
-Plug('nvim-lua/plenary.nvim')
-Plug('nvim-telescope/telescope.nvim')
-Plug('nvim-telescope/telescope-frecency.nvim')
-Plug('p00f/alabaster.nvim')
-
-Plug('ggandor/leap.nvim')
-Plug('tpope/vim-surround')
-Plug('tpope/vim-fugitive', {['as'] = 'catpuccin'})
-
--- Themes
-Plug('ellisonleao/gruvbox.nvim')
-Plug('olimorris/onedarkpro.nvim')
-Plug('ntk148v/komau.vim')
-
-Plug('airblade/vim-gitgutter')
-
-
--- Lean
-Plug('neovim/nvim-lspconfig')
-Plug('nvim-lua/plenary.nvim')
-Plug('Julian/lean.nvim')
-
-Plug('whonore/Coqtail')
-Plug('tomtomjhj/vsrocq.nvim')
-
--- Plug('syaiful6/koka.nvim')
-
-vim.call('plug#end')
+-- Colorscheme
+vim.api.nvim_create_user_command("ToggleBackground", function()
+    if vim.o.background == 'dark' then vim.o.background = 'light' else vim.o.background = 'dark' end
+end, { desc = "Toggles the vim.opt.background setting" })
+vim.opt.background = 'dark'
+vim.cmd("colorscheme komau")
 
 -- Configure plugins
-
+require('oil').setup()
 require('telescope').load_extension('frecency')
 require('telescope').setup({
     defaults = {
-        path_display = {"smart"}
+        path_display = { "smart" }
     }
 })
 require('lean').setup({
     mappings = true,
-    -- infoview = {
-    --   autoopen = true,
-    --   orientation = "horizontal",
-    --   height = 15,
-    --   horizontal_position = "bottom",
-    -- },
 })
 
--- vim.cmd("set background=light")
-vim.cmd("colorscheme retrobox")
-vim.keymap.set('n', '<leader>pc', ':Telescope colorscheme<CR>', { noremap = true })
-
--- Completion setup
+-- Completion setup (tab to cycle completions, enter to accept them)
 local cmp = require('cmp')
 cmp.setup({
     sources = {
@@ -104,28 +81,52 @@ cmp.setup({
         ['<C-Space>'] = cmp.mapping.complete(),
     },
 })
+-- autoformat on save
+local format_on_save = false
+vim.api.nvim_create_autocmd("BufWritePre", {
+    group = vim.api.nvim_create_augroup("FormatOnSave", { clear = true }),
+    callback = function()
+        if format_on_save then
+            vim.lsp.buf.format()
+        end
+    end,
+})
+
+vim.api.nvim_create_user_command("ToggleFormatOnSave", function()
+    format_on_save = not format_on_save
+    vim.notify("Format on save: " .. (format_on_save and "enabled" or "disabled"))
+end, { desc = "Toggles format on save" })
+vim.keymap.set('n', '<leader>ss', ':ToggleFormatOnSave<CR>') -- SPACE f f finds files in the current directory, minus those in gitignore
+
+-- Main keybindings
 
 -- Fuzzy
 local builtin = require('telescope.builtin')
-vim.keymap.set('n', '<leader>ff', builtin.find_files, { noremap = true })
-vim.keymap.set('n', '<leader>fg', builtin.live_grep, { noremap = true })
-vim.keymap.set('n', '<leader>fb', builtin.buffers, { noremap = true })
-vim.keymap.set('n', '<leader>fH', builtin.help_tags, { noremap = true })
-vim.keymap.set('n', '<leader>fh', ':Telescope frecency<CR>', { noremap = true })
-vim.keymap.set('n', '<leader>fc', builtin.git_commits, { noremap = true })
-vim.keymap.set('n', '<leader>fs', builtin.git_status, { noremap = true })
+vim.keymap.set('n', '<leader>ff', builtin.find_files)        -- SPACE f f finds files in the current directory, minus those in gitignore
+vim.keymap.set('n', '<leader>fg', builtin.live_grep)         -- SPACE f g finds text inside files in the current directory, minus those in gitignore
+vim.keymap.set('n', '<leader>fb', builtin.buffers)           -- SPACE f b finds files currently opened
+vim.keymap.set('n', '<leader>fH', builtin.help_tags)         -- SPACE f H looks through the help pages for neovim and plugins
+vim.keymap.set('n', '<leader>fh', ':Telescope frecency<CR>') -- SPACE f h looks through files sorted by how often and how recently they've been opened
+vim.keymap.set('n', '<leader>fc', builtin.git_commits)       -- SPACE f c looks through git commits and shows the diffs
+vim.keymap.set('n', '<leader>fs', builtin.git_status)        -- SPACE f s looks through changed files (from git status)
 
 -- Git
-vim.keymap.set('n', '<leader>gb', ':Git blame<CR>', { noremap = true })
-vim.keymap.set('n', '<leader>gs', ':Git status', { noremap = true })
-vim.keymap.set('n', '<leader>gg', ':Git<CR>', { noremap = true })
-vim.keymap.set('n', ']g', ':GitGutterNextHunk<CR>', { noremap = true })
-vim.keymap.set('n', '[g', ':GitGutterPrevHunk<CR>', { noremap = true })
+vim.keymap.set('n', '<leader>gb', ':Git blame<CR>')  -- SPACE g b shows an inline git blame for the current file
+vim.keymap.set('n', '<leader>gs', ':Git status<CR>') -- SPACE g s shows a quick overview of the git status
+vim.keymap.set('n', '<leader>gg', ':Git<CR>')        -- SPACE g g opens a full git fugitive window for managing changes and more
+vim.keymap.set('n', ']g', ':GitGutterNextHunk<CR>')  -- ] g goes to the next changed piece of code
+vim.keymap.set('n', '[g', ':GitGutterPrevHunk<CR>')  -- [ g goes to the previous changed piece of code
 
--- LSP
-vim.keymap.set('n', '<c-alt>', function()
-    vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
-end)
+--
+vim.keymap.set('n', '<leader>b', ':ToggleBackground<CR>') -- [ g goes to the previous changed piece of code
+
+
+-- Leap
+vim.keymap.set({ 'n', 'x', 'o' }, 's', '<Plug>(leap)') -- s triggers vim leap, to jump to another part of the screen by character tags
+vim.keymap.set('n', 'S', '<Plug>(leap-from-window)')   -- S triggers the same but more globally
+
+-- File management
+vim.keymap.set('n', '<leader>o', ':Oil<CR>') -- SPACE o opens interactive file explorer with ability to rename/delete/move files as a buffer
 
 -- Treesitter
 vim.api.nvim_create_autocmd("FileType", {
@@ -134,51 +135,18 @@ vim.api.nvim_create_autocmd("FileType", {
     end
 })
 
--- Rocq
--- vim.g.loaded_coqtail = 1
--- vim.api.nvim_set_var('coqtail#supported', 0)
---
--- require('vsrocq').setup({
---     vsrocq = {
---         completion = {
---             enable = false,
---         },
---     },
--- })
+-- Specialized languages
+require('rocq')
+require('koka')
 
-local bg = string.format('#%06x', vim.api.nvim_get_hl(0, {name = 'Normal'}).bg or 0)
-vim.cmd('highlight CoqtailChecked guibg=' .. bg)
-vim.cmd('highlight CoqtailSent guibg=' .. bg)
-
-vim.keymap.set('n', '<leader>cl', ':VsRocq interpretToPoint<CR>', { noremap = true })
-vim.keymap.set('n', '<leader>cj', ':VsRocq stepForward<CR>', { noremap = true })
-vim.keymap.set('n', '<leader>ck', ':VsRocq stepBackward<CR>', { noremap = true })
-vim.keymap.set('i', '<A-j>', '<Esc>:VsRocq stepForward<CR>a', { noremap = true })
-vim.keymap.set('i', '<A-k>', '<Esc>:VsRocq stepBackward<CR>a', { noremap = true })
-vim.keymap.set('n', '<leader>cm', ':VsRocq manual<CR>', { noremap = true })
-vim.keymap.set('n', '<leader>cc', ':VsRocq continuous<CR>', { noremap = true })
-vim.keymap.set('n', '<leader>cr', ':lua require("vsrocq").setup()<CR>', { noremap = true })
-
--- Koka
-local parser_config = require('nvim-treesitter.parsers')
-vim.treesitter.language.register('koka', 'koka')
-
-parser_config.koka = {
-  install_info = {
-    url = "https://github.com/koka-lang/tree-sitter-koka",
-    files = { "src/parser.c", "src/scanner.c" },
-    branch = "main",
-  },
-  filetype = "koka",
-}
-vim.filetype.add({
-  extension = {
-    kk = "koka",
-  },
-})
-
--- vim.lsp.enable('lua_ls')
+-- Normal LSP's
+vim.lsp.enable('lua_ls')
 vim.lsp.enable('ocamllsp')
-vim.lsp.enable('koka')
+vim.lsp.enable('koka')     -- configured separately above
 vim.lsp.enable('clangd')
-vim.lsp.enable('millet')
+vim.lsp.enable('millet')   -- SML language server
+vim.lsp.enable('tinymist') -- typst language server
+
+-- Custom macros for dumb shit
+
+vim.keymap.set('n', '<leader>cc', 'olet goal = make_goal [%term ] in') -- SPACE f f finds files in the current directory, minus those in gitignore
