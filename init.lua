@@ -1,5 +1,4 @@
 -- Requires: neovim 0.12+, ripgrep (for telescope live_grep), a nerd font (optional)
--- First launch will auto-install plugins
 
 -- Basic config
 vim.opt.tabstop = 4
@@ -53,7 +52,7 @@ end, { desc = "Update all plugins using vim.pack" })
 vim.api.nvim_create_user_command("ToggleBackground", function()
     if vim.o.background == 'dark' then vim.o.background = 'light' else vim.o.background = 'dark' end
 end, { desc = "Toggles the vim.opt.background setting" })
-vim.opt.background = 'dark'
+vim.opt.background = 'light'
 vim.cmd("colorscheme komau")
 
 -- Configure plugins
@@ -97,6 +96,19 @@ vim.api.nvim_create_user_command("ToggleFormatOnSave", function()
     vim.notify("Format on save: " .. (format_on_save and "enabled" or "disabled"))
 end, { desc = "Toggles format on save" })
 vim.keymap.set('n', '<leader>ss', ':ToggleFormatOnSave<CR>') -- SPACE f f finds files in the current directory, minus those in gitignore
+
+-- Quickfix
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "qf",
+  callback = function()
+    vim.keymap.set("n", "dd", function()
+      local qflist = vim.fn.getqflist()
+      local line = vim.fn.line(".") - 1  -- 0-indexed
+      table.remove(qflist, line + 1)
+      vim.fn.setqflist(qflist)
+    end, { buffer = true })
+  end,
+})
 
 -- Main keybindings
 
@@ -142,6 +154,9 @@ require('koka')
 -- Normal LSP's
 vim.lsp.enable('lua_ls')
 vim.lsp.enable('ocamllsp')
+-- on_init = function(client)
+--     client.server_capabilities.semanticTokensProvider = nil
+-- end,
 vim.lsp.enable('koka')     -- configured separately above
 vim.lsp.enable('clangd')
 vim.lsp.enable('millet')   -- SML language server
