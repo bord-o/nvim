@@ -43,6 +43,7 @@ vim.pack.add({
     gh('Julian/lean.nvim'),
     gh('whonore/Coqtail'),
     gh('tomtomjhj/vsrocq.nvim'),
+    gh('milanglacier/minuet-ai.nvim'),
 })
 vim.api.nvim_create_user_command("PackUpdate", function()
     require("vim.pack").update()
@@ -64,6 +65,54 @@ vim.o.background = get_macos_appearance()-- sets 'dark' or 'light'
 vim.cmd("colorscheme zenbones")
 
 -- Configure plugins
+
+require('minuet').setup {
+    virtualtext = {
+        auto_trigger_ft = {},
+        keymap = {
+            -- accept whole completion
+            accept = '<A-A>',
+            -- accept one line
+            accept_line = '<A-a>',
+            -- accept n lines (prompts for number)
+            -- e.g. "A-z 2 CR" will accept 2 lines
+            accept_n_lines = '<A-z>',
+            -- Cycle to prev completion item, or manually invoke completion
+            prev = '<A-[>',
+            -- Cycle to next completion item, or manually invoke completion
+            next = '<A-]>',
+            dismiss = '<A-e>',
+        },
+    },
+    provider = 'openai_fim_compatible',
+    n_completions = 1, -- recommend for local model for resource saving
+    context_window = 512,
+    provider_options = {
+        openai_fim_compatible = {
+            api_key = 'OMLX_API_KEY',
+            name = 'omlx',
+            end_point = 'http://127.0.0.1:8000/v1/completions',
+            model = 'Qwen2.5-Coder-1.5B-4bit',
+            optional = {
+                max_tokens = 56,
+                top_p = 0.9,
+                stop = { '<|fim_pad|>', '<|fim_prefix|>', '<|fim_suffix|>', '<|fim_middle|>', '<|file_sep|>', '<|endoftext|>', '<|repo_name|>' },
+            },
+            template = {
+                prompt = function(context_before_cursor, context_after_cursor, _)
+                    return '<|fim_prefix|>'
+                        .. context_before_cursor
+                        .. '<|fim_suffix|>'
+                        .. context_after_cursor
+                        .. '<|fim_middle|>'
+                end,
+                suffix = false,
+            },
+        },
+    },
+}
+
+
 require('oil').setup()
 require('telescope').load_extension('frecency')
 require('telescope').setup({
