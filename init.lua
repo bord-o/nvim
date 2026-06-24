@@ -20,32 +20,29 @@ vim.opt.laststatus = 2 -- Or 3 for global statusline
 vim.opt.statusline = " %f %m %= %l:%c of %L ♥ "
 vim.opt.termguicolors = true
 
+-- Use the popup menu for completion, and don't auto-select an entry
+vim.opt.completeopt = 'menu,menuone,noselect'
+
 -- Plugins
 local function gh(repo) return 'https://github.com/' .. repo end
 local function cb(repo) return 'https://codeberg.org/' .. repo end
 
 vim.pack.add({
     gh('nvim-lua/plenary.nvim'),
-    gh('hrsh7th/nvim-cmp'),
-    gh('hrsh7th/cmp-nvim-lsp'),
     gh('nvim-treesitter/nvim-treesitter'),
     gh('nvim-telescope/telescope.nvim'),
     gh('nvim-telescope/telescope-frecency.nvim'),
-    gh('p00f/alabaster.nvim'),
     cb('andyg/leap.nvim'),
     gh('tpope/vim-surround'),
     gh('tpope/vim-fugitive'),
-    gh('ellisonleao/gruvbox.nvim'),
     gh('rktjmp/lush.nvim'),
     gh('zenbones-theme/zenbones.nvim'),
-    gh('olimorris/onedarkpro.nvim'),
-    gh('ntk148v/komau.vim'),
     gh('airblade/vim-gitgutter'),
     gh('neovim/nvim-lspconfig'),
+    gh('stevearc/oil.nvim'),
     gh('Julian/lean.nvim'),
     gh('whonore/Coqtail'),
     gh('tomtomjhj/vsrocq.nvim'),
-    gh('stevearc/oil.nvim')
 })
 vim.api.nvim_create_user_command("PackUpdate", function()
     require("vim.pack").update()
@@ -64,10 +61,6 @@ end
 
 vim.o.background = get_macos_appearance()-- sets 'dark' or 'light'
 
-vim.api.nvim_create_user_command("ToggleBackground", function()
-    if vim.o.background == 'dark' then vim.o.background = 'light' else vim.o.background = 'dark' end
-end, { desc = "Toggles the vim.opt.background setting" })
-
 vim.cmd("colorscheme zenbones")
 
 -- Configure plugins
@@ -82,48 +75,21 @@ require('lean').setup({
     mappings = true,
 })
 
--- Completion setup (tab to cycle completions, enter to accept them)
-local cmp = require('cmp')
-cmp.setup({
-    sources = {
-        { name = 'nvim_lsp' },
-    },
-    mapping = {
-        ['<Tab>'] = cmp.mapping.select_next_item(),
-        ['<S-Tab>'] = cmp.mapping.select_prev_item(),
-        ['<CR>'] = cmp.mapping.confirm({ select = true }),
-        ['<C-Space>'] = cmp.mapping.complete(),
-    },
-})
--- autoformat on save
-local format_on_save = false
-vim.api.nvim_create_autocmd("BufWritePre", {
-    group = vim.api.nvim_create_augroup("FormatOnSave", { clear = true }),
-    callback = function()
-        if format_on_save then
-            vim.lsp.buf.format()
-        end
+-- Completion: use Neovim's built-in LSP completion.
+-- Enable it (with autotrigger) whenever an LSP attaches to a buffer.
+-- <CR> accepts the selected item; <C-n>/<C-p> or <Tab>/<S-Tab> cycle the menu.
+vim.api.nvim_create_autocmd('LspAttach', {
+    callback = function(ev)
+        vim.lsp.completion.enable(true, ev.data.client_id, ev.buf, { autotrigger = true })
     end,
 })
+-- In the popup menu, Tab/S-Tab cycle, CR confirms; otherwise they behave normally.
+vim.keymap.set('i', '<Tab>',   function() return vim.fn.pumvisible() == 1 and '<C-n>' or '<Tab>' end,   { expr = true })
+vim.keymap.set('i', '<S-Tab>', function() return vim.fn.pumvisible() == 1 and '<C-p>' or '<S-Tab>' end, { expr = true })
+vim.keymap.set('i', '<C-Space>', function() vim.lsp.completion.get() end)
 
-vim.api.nvim_create_user_command("ToggleFormatOnSave", function()
-    format_on_save = not format_on_save
-    vim.notify("Format on save: " .. (format_on_save and "enabled" or "disabled"))
-end, { desc = "Toggles format on save" })
-vim.keymap.set('n', '<leader>ss', ':ToggleFormatOnSave<CR>') -- SPACE f f finds files in the current directory, minus those in gitignore
-
--- Quickfix
-vim.api.nvim_create_autocmd("FileType", {
-  pattern = "qf",
-  callback = function()
-    vim.keymap.set("n", "dd", function()
-      local qflist = vim.fn.getqflist()
-      local line = vim.fn.line(".") - 1  -- 0-indexed
-      table.remove(qflist, line + 1)
-      vim.fn.setqflist(qflist)
-    end, { buffer = true })
-  end,
-})
+-- format document with lsp
+vim.keymap.set('n', '<leader>ss', ':lua vim.lsp.buf.format()<CR>') 
 
 -- Main keybindings
 
@@ -144,9 +110,6 @@ vim.keymap.set('n', '<leader>gg', ':Git<CR>')        -- SPACE g g opens a full g
 vim.keymap.set('n', ']g', ':GitGutterNextHunk<CR>')  -- ] g goes to the next changed piece of code
 vim.keymap.set('n', '[g', ':GitGutterPrevHunk<CR>')  -- [ g goes to the previous changed piece of code
 
---
-vim.keymap.set('n', '<leader>b', ':ToggleBackground<CR>') -- [ g goes to the previous changed piece of code
-
 
 -- Leap
 vim.keymap.set({ 'n', 'x', 'o' }, 's', '<Plug>(leap)') -- s triggers vim leap, to jump to another part of the screen by character tags
@@ -162,10 +125,6 @@ vim.api.nvim_create_autocmd("FileType", {
     end
 })
 
-local caps = vim.lsp.protocol.make_client_capabilities()
-caps.workspace.didChangeWatchedFiles.dynamicRegistration = false
-vim.lsp.config('*', { capabilities = caps })
-
 -- Specialized languages
 require('rocq')
 require('koka')
@@ -177,7 +136,3 @@ vim.lsp.enable('koka')     -- configured separately above
 vim.lsp.enable('clangd')
 vim.lsp.enable('millet')   -- SML language server
 vim.lsp.enable('tinymist') -- typst language server
-
--- Custom macros for dumb shit
-
-vim.keymap.set('n', '<leader>cc', 'olet goal = make_goal [%term ] in') -- SPACE f f finds files in the current directory, minus those in gitignore
