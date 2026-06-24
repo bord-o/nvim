@@ -18,6 +18,7 @@ vim.opt.relativenumber = true
 vim.cmd('dig TS 8866') -- digraph support for ⊢
 vim.opt.laststatus = 2 -- Or 3 for global statusline
 vim.opt.statusline = " %f %m %= %l:%c of %L ♥ "
+vim.opt.termguicolors = true
 
 -- Plugins
 local function gh(repo) return 'https://github.com/' .. repo end
@@ -35,6 +36,8 @@ vim.pack.add({
     gh('tpope/vim-surround'),
     gh('tpope/vim-fugitive'),
     gh('ellisonleao/gruvbox.nvim'),
+    gh('rktjmp/lush.nvim'),
+    gh('zenbones-theme/zenbones.nvim'),
     gh('olimorris/onedarkpro.nvim'),
     gh('ntk148v/komau.vim'),
     gh('airblade/vim-gitgutter'),
@@ -49,11 +52,23 @@ vim.api.nvim_create_user_command("PackUpdate", function()
 end, { desc = "Update all plugins using vim.pack" })
 
 -- Colorscheme
+local function get_macos_appearance()
+  local handle = io.popen("defaults read -g AppleInterfaceStyle 2>/dev/null")
+  if handle then
+    local result = handle:read("*a")
+    handle:close()
+    return result:match("Dark") and "dark" or "light"
+  end
+  return "light" -- fallback
+end
+
+vim.o.background = get_macos_appearance()-- sets 'dark' or 'light'
+
 vim.api.nvim_create_user_command("ToggleBackground", function()
     if vim.o.background == 'dark' then vim.o.background = 'light' else vim.o.background = 'dark' end
 end, { desc = "Toggles the vim.opt.background setting" })
-vim.opt.background = 'light'
-vim.cmd("colorscheme komau")
+
+vim.cmd("colorscheme zenbones")
 
 -- Configure plugins
 require('oil').setup()
@@ -147,6 +162,10 @@ vim.api.nvim_create_autocmd("FileType", {
     end
 })
 
+local caps = vim.lsp.protocol.make_client_capabilities()
+caps.workspace.didChangeWatchedFiles.dynamicRegistration = false
+vim.lsp.config('*', { capabilities = caps })
+
 -- Specialized languages
 require('rocq')
 require('koka')
@@ -154,9 +173,6 @@ require('koka')
 -- Normal LSP's
 vim.lsp.enable('lua_ls')
 vim.lsp.enable('ocamllsp')
--- on_init = function(client)
---     client.server_capabilities.semanticTokensProvider = nil
--- end,
 vim.lsp.enable('koka')     -- configured separately above
 vim.lsp.enable('clangd')
 vim.lsp.enable('millet')   -- SML language server
