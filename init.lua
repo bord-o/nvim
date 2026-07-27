@@ -17,7 +17,7 @@ vim.opt.scrolloff = 15
 vim.opt.relativenumber = true
 vim.cmd('dig TS 8866') -- digraph support for ⊢
 vim.opt.laststatus = 2 -- Or 3 for global statusline
-vim.opt.statusline = " %f %m %= %l:%c of %L ♥ "
+vim.opt.statusline = " %f %m %= %l:%c of %L ☀︎ "
 vim.opt.termguicolors = true
 
 -- Use the popup menu for completion, and don't auto-select an entry
@@ -42,13 +42,13 @@ vim.pack.add({
     gh('stevearc/oil.nvim'),
     gh('Julian/lean.nvim'),
     gh('whonore/Coqtail'),
-    gh('tomtomjhj/vsrocq.nvim'),
 })
 vim.api.nvim_create_user_command("PackUpdate", function()
     require("vim.pack").update()
 end, { desc = "Update all plugins using vim.pack" })
 
 -- Colorscheme
+
 local function get_macos_appearance()
   local handle = io.popen("defaults read -g AppleInterfaceStyle 2>/dev/null")
   if handle then
@@ -59,22 +59,23 @@ local function get_macos_appearance()
   return "light" -- fallback
 end
 
-vim.o.background = get_macos_appearance()-- sets 'dark' or 'light'
-
-vim.cmd("colorscheme zenbones")
+-- vim.o.background = get_macos_appearance()-- sets 'dark' or 'light'
+vim.o.background='dark'
+vim.cmd("colorscheme warm-springs")
 
 -- Configure plugins
 require('oil').setup()
+
+-- vim.g.coqtail_noimap=true
+vim.api.nvim_set_hl(0, "CoqtailChecked", { bg = "#2e2923" })
+vim.api.nvim_set_hl(0, "CoqtailSent",    { bg = "#483f36" }) 
+
 require('telescope').load_extension('frecency')
 require('telescope').setup({
     defaults = {
         path_display = { "smart" }
     }
 })
-
-vim.g.lean_config = {
-    mappings = true
-}
 
 vim.api.nvim_create_autocmd('LspAttach', {
     callback = function(ev)
@@ -124,7 +125,6 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 -- Specialized languages
-require('rocq')
 require('koka')
 
 -- Normal LSP's
@@ -132,5 +132,7 @@ vim.lsp.enable('lua_ls')
 vim.lsp.enable('ocamllsp')
 vim.lsp.enable('koka')     -- configured separately above
 vim.lsp.enable('clangd')
-vim.lsp.enable('millet')   -- SML language server
-vim.lsp.enable('tinymist') -- typst language server
+vim.lsp.enable('rust-analyzer')
+vim.lsp.enable('millet')
+vim.lsp.enable('zls')
+

@@ -4,8 +4,16 @@
       "rev": "f513d17d3cb93067393a79b208330b06d9fbc22b",
       "src": "https://github.com/whonore/Coqtail"
     },
+    "isabelle-lsp.nvim": {
+      "rev": "3601b59d77cc4998de29f966ded7d4d959318be2",
+      "src": "https://github.com/Treeniks/isabelle-lsp.nvim"
+    },
+    "isabelle-syn.nvim": {
+      "rev": "114b06dc34edf1707be7249b5a3815733e68d4c9",
+      "src": "https://github.com/Treeniks/isabelle-syn.nvim"
+    },
     "lean.nvim": {
-      "rev": "32fb8aa2edf3f172c307957dc7083e6c7f6caa7e",
+      "rev": "f5771e07ec026aeff2915c338a4cb8e7eb7247a2",
       "src": "https://github.com/Julian/lean.nvim"
     },
     "leap.nvim": {
@@ -17,7 +25,7 @@
       "src": "https://github.com/rktjmp/lush.nvim"
     },
     "nvim-lspconfig": {
-      "rev": "3371bf298c1f56efc26771ee961f461176958fb5",
+      "rev": "d6ac7a0d46555d44bf21f4f9c65f5201f818b475",
       "src": "https://github.com/neovim/nvim-lspconfig"
     },
     "nvim-treesitter": {
