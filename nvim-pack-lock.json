@@ -1,19 +1,19 @@
 {
   "plugins": {
     "Coqtail": {
-      "rev": "c5ab7d8127ebfb7e18f124efdfc568e1a59c5cc1",
+      "rev": "b10655900c07bd64ced0e9883ed992ba6f9d48ba",
       "src": "https://github.com/whonore/Coqtail"
     },
     "conjure": {
-      "rev": "b7ff6c52b84a555cb57ea0d37b005473d4726a81",
+      "rev": "b23c76a8c874fe7ac5ad95255efc66173b049088",
       "src": "https://github.com/Olical/conjure"
     },
     "lean.nvim": {
-      "rev": "3d8027a96ada0fe43bdd01403e1bd4a09d175448",
+      "rev": "42186878a385ab021296e8f8024521d11a661754",
       "src": "https://github.com/Julian/lean.nvim"
     },
     "leap.nvim": {
-      "rev": "e51ba2a70169bb6fd58342312ccde591242ac739",
+      "rev": "277e04fad21e3af05a55cc414757b09a704f2a92",
       "src": "https://codeberg.org/andyg/leap.nvim"
     },
     "lush.nvim": {
@@ -21,7 +21,7 @@
       "src": "https://github.com/rktjmp/lush.nvim"
     },
     "nvim-lspconfig": {
-      "rev": "bff1bd61cb1455040533201ca1edf1e84efa578f",
+      "rev": "ac062d0d01c019c0dbdb798968f3e5d8b35c3853",
       "src": "https://github.com/neovim/nvim-lspconfig"
     },
     "nvim-paredit": {
@@ -33,11 +33,11 @@
       "src": "https://github.com/gpanders/nvim-parinfer"
     },
     "nvim-treesitter": {
-      "rev": "074aa4422bf029908338e855d0c0f71470a971bb",
+      "rev": "1a4f47b03dfe92d28de7d5654c67327ef008c9e6",
       "src": "https://github.com/nvim-treesitter/nvim-treesitter"
     },
     "oil.nvim": {
-      "rev": "b73018b75affd13fa38e2fc94ef753b465f770d7",
+      "rev": "d3733d933833a0e59b813ecec99341527adf0c28",
       "src": "https://github.com/stevearc/oil.nvim"
     },
     "plenary.nvim": {
