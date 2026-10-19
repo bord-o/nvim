@@ -14,6 +14,7 @@ vim.pack.add({
     gh('tpope/vim-fugitive'),
     gh('rktjmp/lush.nvim'),
     gh('zenbones-theme/zenbones.nvim'),
+    gh('miikanissi/modus-themes.nvim'),
     gh('airblade/vim-gitgutter'),
     gh('neovim/nvim-lspconfig'),
     gh('stevearc/oil.nvim'),
@@ -43,7 +44,8 @@ vim.opt.statusline = " %f %m %= %l:%c of %L ☀︎ "
 vim.opt.termguicolors = true
 vim.opt.completeopt = 'menu,menuone,noselect' -- Use the popup menu for completion, and don't auto-select an entry
 vim.o.background='dark'
-vim.cmd("colorscheme zenbones")
+-- vim.o.background='light'
+vim.cmd("colorscheme modus")
 
 require('oil').setup()
 require('telescope').load_extension('frecency')
@@ -72,8 +74,8 @@ vim.keymap.set('n', '<leader>w', '<C-w>')
 vim.keymap.set('n', '<leader>gb', ':Git blame<CR>')  
 vim.keymap.set('n', '<leader>gs', ':Git status<CR>') 
 vim.keymap.set('n', '<leader>gg', ':Git<CR>')        
-vim.keymap.set('n', ']g', ':GitGutterNextHunk<CR>')  
-vim.keymap.set('n', '[g', ':GitGutterPrevHunk<CR>')  
+vim.keymap.set('n', 'gn', ':GitGutterNextHunk<CR>')  
+vim.keymap.set('n', 'gp', ':GitGutterPrevHunk<CR>')  
 vim.keymap.set({ 'n', 'x', 'o' }, 's', '<Plug>(leap)') 
 vim.keymap.set('n', 'S', '<Plug>(leap-from-window)')   
 vim.keymap.set('n', '<leader>o', ':Oil<CR>') 
@@ -86,6 +88,10 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
 vim.api.nvim_create_autocmd("FileType", {
     callback = function(ev) pcall(vim.treesitter.start, ev.buf) end
+})
+
+vim.api.nvim_create_autocmd("InsertCharPre", {
+    callback = function(ev) vim.lsp.completion.get() end
 })
 
 vim.lsp.enable('lua_ls')

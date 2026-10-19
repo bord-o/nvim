@@ -20,6 +20,10 @@
       "rev": "9c60ec2279d62487d942ce095e49006af28eed6e",
       "src": "https://github.com/rktjmp/lush.nvim"
     },
+    "modus-themes.nvim": {
+      "rev": "15ffb5ab6a12f72ee1e8393fe5810d5317da2d3e",
+      "src": "https://github.com/miikanissi/modus-themes.nvim"
+    },
     "nvim-lspconfig": {
       "rev": "ac062d0d01c019c0dbdb798968f3e5d8b35c3853",
       "src": "https://github.com/neovim/nvim-lspconfig"
